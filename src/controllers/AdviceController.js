@@ -181,9 +181,12 @@ async function get(req, res) {
             { _id: { $nin: loggedUser.saves } },
             { _id: { $nin: loggedUser.likes } },
             { _id: { $nin: loggedUser.dislikes } },
+            { creator: { $ne: Types.ObjectId(authId) } },
             // {reports: { $size: { $lt: totalUsers * 0.95 }}},
           ],
-        }).skip(random);
+        }, ['advice', '_id'], {
+            skip: random,
+        })
 
         if(advice && advice.length !== 0) return res.json(advice);
     } catch (error) {

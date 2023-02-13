@@ -1,6 +1,7 @@
 const { userSchema: User, adviceSchema: Advice} = require('../models');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const { Types } = require('mongoose');
 
 async function signUp(req, res) {
   try {
@@ -60,10 +61,7 @@ async function getCreatedAdvice(req, res) {
   const { limit, offset } = req.query;
 
   try {
-    const user = await User.exists({ authId });
-    if(!user) return res.status(400).json({ error: 'User not exists' });
-  
-    const advices = await Advice.find({ creator: user._id }).limit(limit).skip(offset);
+    const advices = await Advice.find({ creator: Types.ObjectId(authId) }, ["advice", "_id"]).limit(limit).skip(offset);
   
     return res.json(advices);
   
@@ -78,7 +76,7 @@ async function getSavedAdvice(req, res) {
   const { limit, offset } = req.query;
 
   try {
-    const userWithAdvice = await User.findOne({authId}).populate('saves').limit(limit).skip(offset);
+    const userWithAdvice = await User.findById(authId).populate('saves').limit(limit).skip(offset);
     return res.json(userWithAdvice.saves);
   } catch (error) {
     console.error(error)

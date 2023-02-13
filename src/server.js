@@ -16,7 +16,13 @@ mongoose.connect(process.env.MONGO_URL, {
 
 mongoose.set('strictQuery', true);
 
-app.use(cors());
+const whitelist = ['http://localhost', 'capacitor://localhost', 'http://localhost:8100']
+const corsOptions = {
+  credentials: true,
+  origin: whitelist,
+}
+app.use(cors(corsOptions));
+
 app.use(express.json());
 app.use(routes);
 

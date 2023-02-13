@@ -31,7 +31,7 @@ async function like(req, res) {
             return res.status(400).json({ error: 'Advice not exists' });
         }
     
-        await User.findOneAndUpdate({authId}, {
+        await User.findByIdAndUpdate(authId, {
             $push: {
                 likes: advice._id,
             },
@@ -57,7 +57,7 @@ async function dislike(req, res) {
             return res.status(400).json({ error: 'Advice not exists' });
         }
     
-        await User.findOneAndUpdate({authId}, {
+        await User.findByIdAndUpdate(authId, {
             $push: {
                 dislikes: advice._id,
             },
@@ -83,7 +83,7 @@ async function save(req, res) {
             return res.status(400).json({ error: 'Advice not exists' });
         }
     
-        await User.findOneAndUpdate({authId}, {
+        await User.findByIdAndUpdate(authId, {
             $push: {
                 saves: advice._id,
             },
@@ -109,7 +109,7 @@ async function unsave(req, res) {
             return res.status(400).json({ error: 'Advice not exists' });
         }
     
-        await User.findOneAndUpdate({authId}, {
+        await User.findByIdAndUpdate(authId, {
             $pull: {
                 saves: advice._id,
             },
@@ -129,11 +129,9 @@ async function store(req, res) {
     const authId = req.authId;
 
     try {
-        const loggedUser = await User.findOne({authId});
-
         await Advice.create({
             advice,
-            creator: loggedUser._id,
+            creator: authId,
             origin: 'BIRBAL',
         });
     } catch (error) {
@@ -151,8 +149,7 @@ async function remove(req, res) {
     const adviceIdObject = Types.ObjectId(adviceId);
 
     try{
-        const user = await User.findOne({authId})
-        await Advice.findOneAndDelete({ _id: adviceIdObject, creator: user._id });
+        await Advice.findOneAndDelete({ _id: adviceIdObject, creator: authId });
 
         await User.updateMany({
             $pull: {
@@ -173,14 +170,13 @@ async function get(req, res) {
     const { authId } = req;
 
     try {
-        const loggedUser = await User.findOne({authId});
+        const loggedUser = await User.findById(authId);
 
         // const totalUsers = await User.count();
         const adviceCount = await Advice.count();
         const random = Math.floor(Math.random() * adviceCount)
     
         const advice = await Advice.findOne({
-          
           $and: [
             { _id: { $nin: loggedUser.saves } },
             { _id: { $nin: loggedUser.likes } },
@@ -206,9 +202,9 @@ async function get(req, res) {
             externalAdviceId: slip.id,
         }
 
-        await Advice.create(newAdvice);
+        const advice = await Advice.create(newAdvice);
 
-        return res.json(newAdvice);
+        return res.json(advice);
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'Internal server error' });
@@ -220,10 +216,8 @@ async function report(req, res) {
     const { authId } = req;
 
     try{
-        const user = await User.findOne({ authId });
-
         await Advice.findByIdAndUpdate(adviceId, {
-            $push: { reports:  user._id},
+            $push: { reports:  authId},
         });
     } catch (error) {
         console.error(error)

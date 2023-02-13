@@ -1,40 +1,21 @@
-const admin = require("firebase-admin");
-
-const serviceAccount = require("../../firebase.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
-
-const getAuthToken = (req, res, next) => {
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.split(' ')[0] === 'Bearer'
-  ) {
-    req.authToken = req.headers.authorization.split(' ')[1];
-  } else {
-    req.authToken = null;
-  }
-  next();
-};
-
+const jwt = require("jsonwebtoken");
 
 const checkIfAuthenticated = (req, res, next) => {
- getAuthToken(req, res, async () => {
-    try {
-      const { authToken } = req;
-      const userInfo = await admin
-        .auth()
-        .verifyIdToken(authToken);
-      req.authId = userInfo.uid;
-      return next();
-    } catch (e) {
-      console.log(e)
-      return res
-        .status(401)
-        .send({ error: 'You are not authorized to make this request' });
+  try {
+    const authToken = req.headers.authorization?.split(" ")[1];
+
+    if (!authToken) {
+      return res.sendStatus(403);
     }
-  });
+
+    const { user } = jwt.verify(authToken, process.env.JWT_SECRET);
+    req.authId = user;
+  } catch (err) {
+    const error = new Error('Not authorized');
+    error.statusCode = 401;
+    throw error;
+  }
+  next();
 };
 
 module.exports = {

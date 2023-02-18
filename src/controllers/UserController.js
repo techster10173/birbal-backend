@@ -9,7 +9,7 @@ async function signUp(req, res) {
     const userExists = await User.exists({ email });
 
     if (userExists) {
-      return res.json(userExists);
+      return res.status(401).json(userExists);
     }
 
     const encryptedUserPassword = await bcrypt.hash(password, 10);

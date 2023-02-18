@@ -196,8 +196,14 @@ async function get(req, res) {
     
 
     try {
-        const slipObj = await axios.get('https://api.adviceslip.com/advice');
-        const { slip } = slipObj.data;
+        let adviceExists = true;
+        let slip = null;
+
+        while (adviceExists) {
+            const { data } = await axios.get('https://api.adviceslip.com/advice');
+            slip = data.slip;
+            adviceExists = await Advice.exists({ externalAdviceId: slip.id });
+        }
 
         const newAdvice = {
             advice: slip.advice,

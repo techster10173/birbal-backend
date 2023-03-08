@@ -198,12 +198,12 @@ async function get(req, res) {
     try {
         let adviceExists = true;
         let slip = null;
-
-        while (adviceExists) {
+        
+        do {
             const { data } = await axios.get('https://api.adviceslip.com/advice');
             slip = data.slip;
             adviceExists = await Advice.exists({ externalAdviceId: slip.id });
-        }
+        } while (adviceExists);
 
         const newAdvice = {
             advice: slip.advice,
@@ -226,7 +226,7 @@ async function report(req, res) {
 
     try{
         await Advice.findByIdAndUpdate(adviceId, {
-            $push: { reports:  authId},
+            $push: { reports:  Types.ObjectId(authId)},
         });
     } catch (error) {
         console.error(error)

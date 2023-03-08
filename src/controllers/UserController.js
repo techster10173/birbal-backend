@@ -61,7 +61,7 @@ async function getCreatedAdvice(req, res) {
   const { limit, offset } = req.query;
 
   try {
-    const advices = await Advice.find({ creator: Types.ObjectId(authId) }, ["advice", "_id"]).limit(limit).skip(offset);
+    const advices = await Advice.find({ creator: Types.ObjectId(authId) }, ["advice", "_id"]).skip(offset * limit).limit(limit);
   
     return res.json(advices);
   
@@ -76,8 +76,15 @@ async function getSavedAdvice(req, res) {
   const { limit, offset } = req.query;
 
   try {
-    const userWithAdvice = await User.findById(authId).populate('saves').limit(limit).skip(offset);
-    return res.json(userWithAdvice.saves);
+    const userWithAdvice = await User.findById(authId).populate({
+      path: 'saves',
+      select: ['advice', '_id'],
+      options: {
+        skip: offset * limit,
+        limit,
+      }
+    });
+    return res.json(userWithAdvice?.saves || []);
   } catch (error) {
     console.error(error)
     return res.status(500).json({ error: 'Internal server error' });

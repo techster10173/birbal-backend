@@ -91,9 +91,22 @@ async function getSavedAdvice(req, res) {
   }
 }
 
+async function remove(req, res) {
+  const { authId } = req;
+
+  try {
+    await User.findByIdAndDelete(authId);
+    return res.json({ message: 'User deleted' });
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
 module.exports = {
   signUp,
   login,
   getSavedAdvice,
   getCreatedAdvice,
+  remove,
 };

@@ -25,7 +25,7 @@ async function like(req, res) {
     const { adviceId } = req.params;
 
     try {
-        const advice = await Advice.exists({_id: Types.ObjectId(adviceId)});
+        const advice = await Advice.exists({_id: new Types.ObjectId(adviceId)});
 
         if (!advice) {
             return res.status(400).json({ error: 'Advice not exists' });
@@ -51,7 +51,7 @@ async function dislike(req, res) {
     const { adviceId } = req.params;
 
     try {
-        const advice = await Advice.exists({_id: Types.ObjectId(adviceId)});
+        const advice = await Advice.exists({_id: new Types.ObjectId(adviceId)});
 
         if (!advice) {
             return res.status(400).json({ error: 'Advice not exists' });
@@ -77,7 +77,7 @@ async function save(req, res) {
     const { adviceId } = req.params;
 
     try {
-        const advice = await Advice.exists({_id: Types.ObjectId(adviceId)});
+        const advice = await Advice.exists({_id: new Types.ObjectId(adviceId)});
 
         if (!advice) {
             return res.status(400).json({ error: 'Advice not exists' });
@@ -103,7 +103,7 @@ async function unsave(req, res) {
     const { adviceId } = req.params;
 
     try {
-        const advice = await Advice.exists({_id: Types.ObjectId(adviceId)});
+        const advice = await Advice.exists({_id: new Types.ObjectId(adviceId)});
 
         if (!advice) {
             return res.status(400).json({ error: 'Advice not exists' });
@@ -146,7 +146,7 @@ async function remove(req, res) {
     const authId = req.authId;
     const { adviceId } = req.params;
 
-    const adviceIdObject = Types.ObjectId(adviceId);
+    const adviceIdObject = new Types.ObjectId(adviceId);
 
     try{
         await Advice.findOneAndDelete({ _id: adviceIdObject, creator: authId });
@@ -181,7 +181,7 @@ async function get(req, res) {
             { _id: { $nin: loggedUser.saves } },
             { _id: { $nin: loggedUser.likes } },
             { _id: { $nin: loggedUser.dislikes } },
-            { creator: { $ne: Types.ObjectId(authId) } },
+            { creator: { $ne: new Types.ObjectId(authId) } },
             // {reports: { $size: { $lt: totalUsers * 0.95 }}},
           ],
         }, ['advice', '_id'], {
@@ -226,7 +226,7 @@ async function report(req, res) {
 
     try{
         await Advice.findByIdAndUpdate(adviceId, {
-            $push: { reports:  Types.ObjectId(authId)},
+            $push: { reports:  new Types.ObjectId(authId)},
         });
     } catch (error) {
         console.error(error)

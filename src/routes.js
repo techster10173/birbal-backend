@@ -7,8 +7,7 @@ const routes = express.Router();
 
 routes.get('/user/create', checkIfAuthenticated, UserController.getCreatedAdvice);
 routes.get('/user/save', checkIfAuthenticated, UserController.getSavedAdvice);
-routes.post('/user/auth', UserController.login);
-routes.put('/user/auth', UserController.signUp);
+routes.put('/user/auth', checkIfAuthenticated, UserController.signUp);
 routes.delete('/user', checkIfAuthenticated, UserController.remove);
 
 routes.post('/advice/:adviceId', checkIfAuthenticated, AdviceController.actionManager);

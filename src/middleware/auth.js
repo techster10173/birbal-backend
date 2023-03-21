@@ -1,21 +1,32 @@
-const jwt = require("jsonwebtoken");
+const { initializeApp } = require("firebase-admin/app");
+const { credential } = require("firebase-admin");
+const { getAuth } = require('firebase-admin/auth')
+const adminCredential = require('../../admin.json');
 
-const checkIfAuthenticated = (req, res, next) => {
-  try {
-    const authToken = req.headers.authorization?.split(" ")[1];
+const app = initializeApp({
+  credential: credential.cert(adminCredential),
+});
 
-    if (!authToken) {
-      return res.sendStatus(403);
+const checkIfAuthenticated = async (req, res, next) => {
+  const authToken = req.headers.authorization?.split(" ")[1];
+
+  try{
+    const user = await getAuth(app).verifyIdToken(authToken);
+
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { user } = jwt.verify(authToken, process.env.JWT_SECRET);
-    req.authId = user;
-  } catch (err) {
-    const error = new Error('Not authorized');
-    error.statusCode = 401;
-    throw error;
+    req.firebaseId = user.uid;
+
+    if(user.appId){
+      req.authId = user.appId;
+    }
+    next()
+  } catch (error) {
+    console.log(error)
+    return res.status(401).json({error});
   }
-  next();
 };
 
 module.exports = {

@@ -172,7 +172,7 @@ async function get(req, res) {
     try {
         const loggedUser = await User.findById(authId);
 
-        // const totalUsers = await User.count();
+        const totalUsers = await User.count();
         const adviceCount = await Advice.count();
         const random = Math.floor(Math.random() * adviceCount)
     
@@ -182,10 +182,13 @@ async function get(req, res) {
             { _id: { $nin: loggedUser.likes } },
             { _id: { $nin: loggedUser.dislikes } },
             { creator: { $ne: new Types.ObjectId(authId) } },
-            // {reports: { $size: { $lt: totalUsers * 0.95 }}},
+            {$expr:{$lt:[{$size:"$reports"}, {$multiply:[totalUsers, 0.95]}]}},
           ],
         }, ['advice', '_id'], {
             skip: random,
+            sort: {
+                origin: 1,
+            },
         })
 
         if(advice && advice.length !== 0) return res.json(advice);
